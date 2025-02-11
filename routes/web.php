@@ -12,8 +12,8 @@ Route::get('/export-articles', [ArticleController::class, 'exportCSV'])->name('a
 
 Route::post('/import-articles', [ArticleController::class, 'importCSV'])->name('articles.import');
 
+Route::get('/articles/filter', [ArticleController::class, 'filter'])->name('articles.filter');
 
-
-
+Route::get('/articles/export-filtered', [ArticleController::class, 'exportFilteredCSV'])->name('articles.export.filtered');
 
 Route::resource('articles', ArticleController::class);
