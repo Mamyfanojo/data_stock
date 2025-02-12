@@ -86,34 +86,6 @@ class ArticleController extends Controller
         return redirect()->route('articles.index')->with('success', 'Article supprimé.');
     }
 
-    public function exportCSV()
-    {
-        $articles = Article::all();
-        $fileName = 'articles.csv';
-
-        $headers = [
-            "Content-Type" => "text/csv; charset=UTF-8",
-            "Content-Disposition" => "attachment; filename=$fileName",
-            "Pragma" => "no-cache",
-            "Expires" => "0",
-        ];
-
-        $callback = function () use ($articles) {
-            $file = fopen('php://output', 'w');
-
-            fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF)); // BOM pour UTF-8
-
-            fputcsv($file, ['flag', 'vessel_name', 'registered_owner', 'call_sign', 'mmsi', 'imo', 'ship_type', 'destination', 'eta', 'navigation_status', 'latitude', 'longitude', 'age', 'time_of_fix'], ';');
-
-            foreach ($articles as $article) {
-                fputcsv($file, [$article->flag, $article->vessel_name, $article->registered_owner, $article->call_sign, $article->mmsi, $article->imo, $article->ship_type, $article->destination, $article->eta, $article->navigation_status, $article->latitude, $article->longitude, $article->age, $article->time_of_fix], ';');
-            }
-
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
-    }
 
     public function importCSV(Request $request)
     {
@@ -213,54 +185,119 @@ class ArticleController extends Controller
         return view('articles.index', compact('articles'));
     }
 
-    public function exportFilteredCSV(Request $request)
-    {
-        $filtreDestinations = [
-            "Mg die", "Antsiranana [mdg]", "Mg Die", "Mgdie", "Diego Suarez",
-            "Mg Dgo", "Mg Mjn", "Mgmjn", "Mg Mga", "Majunga", "Mahajanga",
-            "Mg Tle", "Mgtle", "Mg Ehl", "mgehl", "Mgt0a", "Mg Tmm", "Mgtoa",
-            "Mg Toa", "Tamatave", "Toamasina", "Tamatave-madagascar",
-            "Toamasina(tamatave)", "Mg.toamasina", "Mgtmm", "mgtmm", "Mgtmve",
-            "Tma", "Tma@@@@@@@@@@@@@@@@a", "Toamasina. Madagasca", "Nosy Be",
-            "Mgehl", "Mg Eho", "Mg Nbe", "Mg Voh", "Vohemar", "Mg Vhm", "Tular",
-            "Eez Madagascar", "Ile Sainte Marie", "Sainte Marie", "Iharana",
-            "Andoany", "Ehoala", "Tulear-Madagascar", "Tulear-mg", "Nosy Be",
-            "Ankify", "Mg Nos", "Mgnos", "Mg B2g", "Mg Ftu", "Hell-ville",
-            "Nosy Be Madagascar", "Nosy Iranja", "Mg Nbe", "Fort Dauphin",
-            "Antsiranana", "Mg Nosy Mangabe", "Nosy Tanikely", "Tulear__madagascar",
-            "Nosy Sakatia", "Mghlv", "Morondava", "Toamgt"
-        ];
+    // Code corrigé pour les méthodes d'exportation CSV
+public function exportCSV()
+{
+    $articles = Article::all();
+    $fileName = 'articles.csv';
 
-        $articles = Article::where(function($query) use ($filtreDestinations) {
-            foreach ($filtreDestinations as $destination) {
-                $query->orWhere('destination', 'LIKE', "%$destination%");
-            }
-        })->get();
+    $headers = [
+        "Content-Type" => "text/csv; charset=UTF-8",
+        "Content-Disposition" => "attachment; filename=$fileName",
+        "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
+        "Expires" => "0",
+        "Pragma" => "public",
+    ];
 
-        $fileName = 'articles_filtered.csv';
+    return response()->stream(function () use ($articles) {
+        $file = fopen('php://output', 'w');
+        ob_clean(); 
+        fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF)); 
 
-        $headers = [
-            "Content-Type" => "text/csv; charset=UTF-8",
-            "Content-Disposition" => "attachment; filename=$fileName",
-            "Pragma" => "no-cache",
-            "Expires" => "0",
-        ];
+        // Entête CSV
+        fputcsv($file, ['flag', 'vessel_name', 'registered_owner', 'call_sign', 'mmsi', 'imo', 'ship_type', 'destination', 'eta', 'navigation_status', 'latitude', 'longitude', 'age', 'time_of_fix'], ';');
 
-        $callback = function () use ($articles) {
-            $file = fopen('php://output', 'w');
+        foreach ($articles as $article) {
+            $timeOfFix = $article->time_of_fix ? Carbon::parse($article->time_of_fix)->format('Y-m-d\TH:i:s.000\Z') : null;
+            fputcsv($file, [
+                $article->flag,
+                $article->vessel_name,
+                $article->registered_owner,
+                $article->call_sign,
+                $article->mmsi,
+                $article->imo,
+                $article->ship_type,
+                $article->destination,
+                $article->eta,
+                $article->navigation_status,
+                $article->latitude,
+                $article->longitude,
+                $article->age,
+                $timeOfFix,
+            ], ';');
+        }
 
-            fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF)); // BOM UTF-8
+        fflush($file);
+        fclose($file);
+    }, 200, $headers);
+}
 
-            fputcsv($file, ['flag', 'vessel_name', 'registered_owner', 'call_sign', 'mmsi', 'imo', 'ship_type', 'destination', 'eta', 'navigation_status', 'latitude', 'longitude', 'age', 'time_of_fix'], ';');
+public function exportFilteredCSV(Request $request)
+{
+    // Définition des destinations à filtrer
+    $filtreDestinations = [
+        "Mg die", "Antsiranana [mdg]", "Mg Die", "Mgdie", "Diego Suarez",
+        "Mg Dgo", "Mg Mjn", "Mgmjn", "Mg Mga", "Majunga", "Mahajanga",
+        "Mg Tle", "Mgtle", "Mg Ehl", "mgehl", "Mgt0a", "Mg Tmm", "Mgtoa",
+        "Mg Toa", "Tamatave", "Toamasina", "Tamatave-madagascar",
+        "Toamasina(tamatave)", "Mg.toamasina", "Mgtmm", "mgtmm", "Mgtmve",
+        "Tma", "Tma@@@@@@@@@@@@@@@@a", "Toamasina. Madagasca", "Nosy Be",
+        "Mgehl", "Mg Eho", "Mg Nbe", "Mg Voh", "Vohemar", "Mg Vhm", "Tular",
+        "Eez Madagascar", "Ile Sainte Marie", "Sainte Marie", "Iharana",
+        "Andoany", "Ehoala", "Tulear-Madagascar", "Tulear-mg", "Nosy Be",
+        "Ankify", "Mg Nos", "Mgnos", "Mg B2g", "Mg Ftu", "Hell-ville",
+        "Nosy Be Madagascar", "Nosy Iranja", "Mg Nbe", "Fort Dauphin",
+        "Antsiranana", "Mg Nosy Mangabe", "Nosy Tanikely", "Tulear__madagascar",
+        "Nosy Sakatia", "Mghlv", "Morondava", "Toamgt"
+    ];
 
-            foreach ($articles as $article) {
-                fputcsv($file, [$article->flag, $article->vessel_name, $article->registered_owner, $article->call_sign, $article->mmsi, $article->imo, $article->ship_type, $article->destination, $article->eta, $article->navigation_status, $article->latitude, $article->longitude, $article->age, $article->time_of_fix], ';');
-            }
+    $articles = Article::where(function ($query) use ($filtreDestinations) {
+        foreach ($filtreDestinations as $destination) {
+            $query->orWhere('destination', $destination);
+        }
+        $query->orWhere('destination', 'LIKE', 'Mg%');
+    })->get();
 
-            fclose($file);
-        };
+    $fileName = 'articles_filtered.csv';
+    $headers = [
+        "Content-Type" => "text/csv; charset=UTF-8",
+        "Content-Disposition" => "attachment; filename=$fileName",
+        "Pragma" => "no-cache",
+        "Expires" => "0",
+    ];
 
-        return response()->stream($callback, 200, $headers);
-    }
+    $callback = function () use ($articles) {
+        $file = fopen('php://output', 'w');
+        fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+        fputcsv($file, ['flag', 'vessel_name', 'registered_owner', 'call_sign', 'mmsi', 'imo', 'ship_type', 'destination', 'eta', 'navigation_status', 'latitude', 'longitude', 'age', 'time_of_fix'], ';');
+
+        foreach ($articles as $article) {
+            $timeOfFix = $article->time_of_fix ? Carbon::parse($article->time_of_fix)->format('Y-m-d\TH:i:s.000\Z') : null;
+            fputcsv($file, [
+                $article->flag,
+                $article->vessel_name,
+                $article->registered_owner,
+                $article->call_sign,
+                $article->mmsi,
+                $article->imo,
+                $article->ship_type,
+                $article->destination,
+                $article->eta,
+                $article->navigation_status,
+                $article->latitude,
+                $article->longitude,
+                $article->age,
+                $timeOfFix,
+            ], ';');
+        }
+
+        fclose($file);
+    };
+
+    return response()->stream($callback, 200, $headers);
+}
+
+
 
 }
