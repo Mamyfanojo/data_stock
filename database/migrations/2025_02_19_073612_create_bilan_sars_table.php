@@ -26,7 +26,7 @@ return new class extends Migration
             $table->text('description_de_l_evenement')->nullable();
             $table->foreignId('cause_de_l_evenement_id')->nullable()->constrained('cause_evenements')->nullOnDelete();
             $table->string('lieu_de_l_evenement')->nullable();
-            $table->string('region')->nullable();
+            $table->foreignId('region_id')->nullable()->constrained('regions')->nullOnDelete(); // Relation avec regions
             $table->string('type_d_intervention')->nullable();
             $table->text('description_de_l_intervention')->nullable();
             $table->string('source_de_l_information')->nullable();
@@ -40,6 +40,7 @@ return new class extends Migration
             $table->timestamps();
         });
     }
+    
 
     public function down()
     {

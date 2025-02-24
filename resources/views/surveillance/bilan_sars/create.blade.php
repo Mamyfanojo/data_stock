@@ -91,10 +91,17 @@
                 <label>Lieu de l'Événement</label>
                 <input type="text" name="lieu_de_l_evenement" class="form-control">
             </div>
+            
             <div class="col-md-6">
                 <label>Région</label>
-                <input type="text" name="region" class="form-control">
+                <select name="region_id" class="form-control">
+                    <option value="">Sélectionner une région</option>
+                    @foreach ($regions as $region)
+                        <option value="{{ $region->id }}">{{ $region->nom }}</option>
+                    @endforeach
+                </select>
             </div>
+
             <div class="col-md-6">
                 <label>Type d'Intervention</label>
                 <input type="text" name="type_d_intervention" class="form-control">

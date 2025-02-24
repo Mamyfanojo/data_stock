@@ -9,12 +9,20 @@ class BilanSar extends Model
     use HasFactory;
 
     protected $fillable = [
-        'date', 'nom_du_navire', 'pavillon', 'immatriculation_callsign', 'armateur_proprietaire',
-        'type_du_navire', 'coque', 'propulsion', 'moyen_d_alerte', 'type_d_evenement_id',
-        'description_de_l_evenement', 'cause_de_l_evenement_id', 'lieu_de_l_evenement', 'region',
-        'type_d_intervention', 'description_de_l_intervention', 'source_de_l_information',
-        'pob', 'survivants', 'blesses', 'morts', 'disparus', 'evasan', 'bilan_materiel'
+        'date', 'nom_du_navire', 'pavillon', 'immatriculation_callsign',
+        'armateur_proprietaire', 'type_du_navire', 'coque', 'propulsion',
+        'moyen_d_alerte', 'type_d_evenement_id', 'cause_de_l_evenement_id',
+        'description_de_l_evenement', 'lieu_de_l_evenement', 'region_id',
+        'type_d_intervention', 'description_de_l_intervention',
+        'source_de_l_information', 'pob', 'survivants', 'blesses',
+        'morts', 'disparus', 'evasan', 'bilan_materiel'
     ];
+
+    // Relation avec Region (plusieurs Bilans SAR appartiennent à une Region)
+    public function region()
+    {
+        return $this->belongsTo(Region::class);
+    }
 
     public function typeEvenement()
     {

@@ -11,6 +11,7 @@ use App\Http\Controllers\PollutionController;
 use App\Http\Controllers\BilanSarController;
 use App\Http\Controllers\TypeEvenementController;
 use App\Http\Controllers\CauseEvenementController;
+use App\Http\Controllers\RegionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\test;
 
@@ -63,6 +64,7 @@ Route::post('/import-articles/{id}', [ZoneController::class, 'importCSV'])->name
 Route::prefix('bilan_sars')->group(function () {
     Route::resource('type_evenements', TypeEvenementController::class);
     Route::resource('cause_evenements', CauseEvenementController::class);
+    Route::resource('regions', RegionController::class);
 });
 
 

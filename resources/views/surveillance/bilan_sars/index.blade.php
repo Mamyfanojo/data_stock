@@ -83,7 +83,7 @@
                         <td><small>{{ $bilan->causeEvenement->nom ?? '-' }}</small></td>
                         <td><small>{{ $bilan->description_de_l_evenement }}</small></td>
                         <td><small>{{ $bilan->lieu_de_l_evenement }}</small></td>
-                        <td><small>{{ $bilan->region }}</small></td>
+                        <td><small>{{ $bilan->region?->nom }}</small></td>
                         <td><small>{{ $bilan->type_d_intervention }}</small></td>
                         <td><small>{{ $bilan->description_de_l_intervention }}</small></td>
                         <td><small>{{ $bilan->source_de_l_information }}</small></td>

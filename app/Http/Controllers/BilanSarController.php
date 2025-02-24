@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\BilanSar;
+use App\Models\Region;
 use App\Models\TypeEvenement;
 use App\Models\CauseEvenement;
 use Illuminate\Http\Request;
@@ -21,8 +22,10 @@ class BilanSarController extends Controller
     {
         $types_evenement = TypeEvenement::all();
         $causes_evenement = CauseEvenement::all();
-        return view('surveillance.bilan_sars.create', compact('types_evenement', 'causes_evenement'));
+        $regions = Region::all();
+        return view('surveillance.bilan_sars.create', compact('types_evenement', 'causes_evenement', 'regions'));
     }
+    
 
     public function store(Request $request)
     {
@@ -40,7 +43,7 @@ class BilanSarController extends Controller
             'cause_de_l_evenement_id' => 'nullable|exists:cause_evenements,id',
             'description_de_l_evenement' => 'nullable|string',
             'lieu_de_l_evenement' => 'nullable|string',
-            'region' => 'nullable|string',
+            'region_id' => 'nullable|exists:regions,id', // Modification ici
             'type_d_intervention' => 'nullable|string',
             'description_de_l_intervention' => 'nullable|string',
             'source_de_l_information' => 'nullable|string',
@@ -57,7 +60,7 @@ class BilanSarController extends Controller
     
         return redirect()->route('bilan_sars.index')->with('success', 'Bilan SAR ajouté avec succès.');
     }
-                                                                                                           
+                                                                                                          
 
     public function destroy(BilanSar $bilanSar)
     {

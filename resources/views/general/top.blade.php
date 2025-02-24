@@ -160,6 +160,12 @@
                       <p>Causes d'evenement</p>
                   </a>
                 </li>
+                <li class="nav-item">
+                  <a href="{{ route('regions.index') }}" class="nav-link {{ request()->is('bilan_sars/region*') ? 'activee' : '' }}">
+                      <i class="far fa-circle nav-icon"></i>
+                      <p>Region</p>
+                  </a>
+                </li>
             </ul>
             </li>
         </ul>
