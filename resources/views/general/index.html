@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Graphique Chart.js</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* Style pour donner une taille au graphique */
+    canvas {
+      width: 100%;
+      max-width: 600px;
+      margin: 50px auto;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+  <h2 style="text-align: center;">Exemple de Graphique avec Chart.js</h2>
+
+  <!-- Canvas pour le graphique -->
+  <canvas id="myChart"></canvas>
+
+  <script>
+    // Attendre que le DOM soit prêt
+    document.addEventListener("DOMContentLoaded", function() {
+      // Récupérer le contexte du canvas
+      var ctx = document.getElementById('myChart').getContext('2d');
+      
+      // Créer un graphique avec Chart.js
+      var myChart = new Chart(ctx, {
+        type: 'bar', // Type de graphique : barres
+        data: {
+          labels: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet'], // Labels des mois
+          datasets: [{
+            label: 'Ventes',
+            data: [12, 19, 3, 5, 2, 3, 7], // Données de vente
+            backgroundColor: 'rgba(75, 192, 192, 0.2)', // Couleur de fond des barres
+            borderColor: 'rgba(75, 192, 192, 1)', // Couleur de bordure des barres
+            borderWidth: 1
+          }]
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true // Commencer l'axe Y à zéro
+            }
+          }
+        }
+      });
+    });
+  </script>
+
+</body>
+</html>

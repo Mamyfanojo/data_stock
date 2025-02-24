@@ -11,73 +11,8 @@ class ArticleController extends Controller
 {
     public function index()
     {
-        $articles = Article::all();
+        $articles = Article::paginate(20);
         return view('articles.index', compact('articles'));
-    }
-
-    public function create()
-    {
-        return view('articles.create');
-    }
-
-    public function store(Request $request)
-    {
-        $request->validate([
-            'flag' => 'nullable|string|max:255',
-            'vessel_name' => 'nullable|string|max:255',
-            'registered_owner' => 'nullable|string|max:255',
-            'call_sign' => 'nullable|string|max:255',
-            'mmsi' => 'nullable|string|max:255',
-            'imo' => 'nullable|string|max:255',
-            'ship_type' => 'nullable|string|max:255',
-            'destination' => 'nullable|string|max:255',
-            'eta' => 'nullable|date', // Validation pour la date ETA
-            'navigation_status' => 'nullable|string|max:255',
-            'latitude' => 'nullable|numeric', // Validation pour la latitude
-            'longitude' => 'nullable|numeric', // Validation pour la longitude
-            'age' => 'nullable|integer', // Validation pour l'âge
-            'time_of_fix' => 'nullable',
-        ]);
-
-        $data = $request->all();
-        $data['time_of_fix'] = $this->formatTimeOfFix($request->input('time_of_fix'));
-
-        Article::create($data);
-
-        return redirect()->route('articles.index')->with('success', 'Article ajouté avec succès.');
-    }
-
-
-    public function edit(Article $article)
-    {
-        return view('articles.edit', compact('article'));
-    }
-
-    public function update(Request $request, Article $article)
-    {
-        $request->validate([
-            'flag' => 'nullable|string|max:255',
-            'vessel_name' => 'nullable|string|max:255',
-            'registered_owner' => 'nullable|string|max:255',
-            'call_sign' => 'nullable|string|max:255',
-            'mmsi' => 'nullable|string|max:255',
-            'imo' => 'nullable|string|max:255',
-            'ship_type' => 'nullable|string|max:255',
-            'destination' => 'nullable|string|max:255',
-            'eta' => 'nullable',
-            'navigation_status' => 'nullable|string|max:255',
-            'latitude' => 'nullable|numeric',
-            'longitude' => 'nullable|numeric',
-            'age' => 'nullable|integer',
-            'time_of_fix' => 'nullable',
-        ]);
-
-        $data = $request->all();
-        $data['time_of_fix'] = $this->formatTimeOfFix($request->input('time_of_fix'));
-
-        $article->update($data);
-
-        return redirect()->route('articles.index')->with('success', 'Article mis à jour.');
     }
 
     public function destroy(Article $article)
@@ -160,144 +95,194 @@ class ArticleController extends Controller
 
     public function filter(Request $request)
     {
-        $filtreDestinations = [
-            "Mg die", "Antsiranana [mdg]", "Mg Die", "Mgdie", "Diego Suarez",
-            "Mg Dgo", "Mg Mjn", "Mgmjn", "Mg Mga", "Majunga", "Mahajanga",
-            "Mg Tle", "Mgtle", "Mg Ehl", "mgehl", "Mgt0a", "Mg Tmm", "Mgtoa",
-            "Mg Toa", "Tamatave", "Toamasina", "Tamatave-madagascar",
-            "Toamasina(tamatave)", "Mg.toamasina", "Mgtmm", "mgtmm", "Mgtmve",
-            "Tma", "Tma@@@@@@@@@@@@@@@@a", "Toamasina. Madagasca", "Nosy Be",
-            "Mgehl", "Mg Eho", "Mg Nbe", "Mg Voh", "Vohemar", "Mg Vhm", "Tular",
-            "Eez Madagascar", "Ile Sainte Marie", "Sainte Marie", "Iharana",
-            "Andoany", "Ehoala", "Tulear-Madagascar", "Tulear-mg", "Nosy Be",
-            "Ankify", "Mg Nos", "Mgnos", "Mg B2g", "Mg Ftu", "Hell-ville",
-            "Nosy Be Madagascar", "Nosy Iranja", "Mg Nbe", "Fort Dauphin",
-            "Antsiranana", "Mg Nosy Mangabe", "Nosy Tanikely", "Tulear__madagascar",
-            "Nosy Sakatia", "Mghlv", "Morondava", "Toamgt"
-        ];
-
-        $articles = Article::where(function($query) use ($filtreDestinations) {
+        $filter = $request->input('filter'); // Récupérer le filtre sélectionné
+        
+        $query = Article::query(); // Initialisation de la requête
+    
+        if ($filter === 'destinationmada') {
+            // Liste des destinations pour "Destination Mada"
+            $filtreDestinations = [
+                "Mg die", "Antsiranana [mdg]", "Mg Die", "Mgdie", "Diego Suarez",
+                "Mg Dgo", "Mg Mjn", "Mgmjn", "Mg Mga", "Majunga", "Mahajanga",
+                "Mg Tle", "Mgtle", "Mg Ehl", "mgehl", "Mgt0a", "Mg Tmm", "Mgtoa",
+                "Mg Toa", "Tamatave", "Toamasina", "Tamatave-madagascar",
+                "Toamasina(tamatave)", "Mg.toamasina", "Mgtmm", "mgtmm", "Mgtmve",
+                "Tma", "Tma@@@@@@@@@@@@@@@@a", "Toamasina. Madagasca", "Nosy Be",
+                "Mgehl", "Mg Eho", "Mg Nbe", "Mg Voh", "Vohemar", "Mg Vhm", "Tular",
+                "Eez Madagascar", "Ile Sainte Marie", "Sainte Marie", "Iharana",
+                "Andoany", "Ehoala", "Tulear-Madagascar", "Tulear-mg", "Nosy Be",
+                "Ankify", "Mg Nos", "Mgnos", "Mg B2g", "Mg Ftu", "Hell-ville",
+                "Nosy Be Madagascar", "Nosy Iranja", "Mg Nbe", "Fort Dauphin",
+                "Antsiranana", "Mg Nosy Mangabe", "Nosy Tanikely", "Tulear__madagascar",
+                "Nosy Sakatia", "Mghlv", "Morondava", "Toamgt"
+            ];
+    
+           // Appliquer le filtre
+        $query->where(function ($q) use ($filtreDestinations) {
             foreach ($filtreDestinations as $destination) {
-                $query->orWhere('destination', 'LIKE', "%$destination%");
+                $q->orWhere('destination', $destination);
             }
-        })->get();
+            // Inclure aussi les destinations qui commencent par "Mg"
+            $q->orWhere('destination', 'LIKE', 'Mg%');
+        });
 
+        // Exclure les lignes avec shiptype = "Tug"
+        $query->where('ship_type', '!=', 'Tug');
+
+        // Exclure les lignes avec vessel_name = "TSARAVATSY", "AVISOA", "TS INDIAN OCEAN"
+        $query->whereNotIn('vessel_name', ['TSARAVATSY', 'AVISOA', 'TS INDIAN OCEAN']);
+
+        // Exclure les lignes avec flag = "Madagascar"
+        $query->where('flag', '!=', 'Madagascar');
+
+        } elseif ($filter === 'national') {
+            // Filtrer uniquement les articles avec "Madagascar" et "Luxembourg"
+            $query->whereIn('flag', ['Madagascar', 'Luxembourg']);
+        } elseif ($filter === 'international') {
+            // Filtrer tout sauf "Madagascar" et "Luxembourg"
+            $query->whereNotIn('flag', ['Madagascar', 'Luxembourg']);
+        }
+    
+        $articles = $query->paginate($query->count());
+    
         return view('articles.index', compact('articles'));
     }
+    
 
     // Code corrigé pour les méthodes d'exportation CSV
-public function exportCSV()
-{
-    $articles = Article::all();
-    $fileName = 'articles.csv';
+    public function exportCSV()
+    {
+        $articles = Article::all();
+        $fileName = 'articles'.carbon::now().'.csv';
 
-    $headers = [
-        "Content-Type" => "text/csv; charset=UTF-8",
-        "Content-Disposition" => "attachment; filename=$fileName",
-        "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
-        "Expires" => "0",
-        "Pragma" => "public",
-    ];
+        $headers = [
+            "Content-Type" => "text/csv; charset=UTF-8",
+            "Content-Disposition" => "attachment; filename=$fileName",
+            "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
+            "Expires" => "0",
+            "Pragma" => "public",
+        ];
 
-    return response()->stream(function () use ($articles) {
-        $file = fopen('php://output', 'w');
-        ob_clean(); 
-        fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF)); 
+        return response()->stream(function () use ($articles) {
+            $file = fopen('php://output', 'w');
+            fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF)); 
 
-        // Entête CSV
-        fputcsv($file, ['flag', 'vessel_name', 'registered_owner', 'call_sign', 'mmsi', 'imo', 'ship_type', 'destination', 'eta', 'navigation_status', 'latitude', 'longitude', 'age', 'time_of_fix'], ';');
+            // Entête CSV
+            fputcsv($file, ['flag', 'vessel_name', 'registered_owner', 'call_sign', 'mmsi', 'imo', 'ship_type', 'destination', 'eta', 'navigation_status', 'latitude', 'longitude', 'age', 'time_of_fix'], ';');
 
-        foreach ($articles as $article) {
-            $timeOfFix = $article->time_of_fix ? Carbon::parse($article->time_of_fix)->format('Y-m-d\TH:i:s.000\Z') : null;
-            fputcsv($file, [
-                $article->flag,
-                $article->vessel_name,
-                $article->registered_owner,
-                $article->call_sign,
-                $article->mmsi,
-                $article->imo,
-                $article->ship_type,
-                $article->destination,
-                $article->eta,
-                $article->navigation_status,
-                $article->latitude,
-                $article->longitude,
-                $article->age,
-                $timeOfFix,
-            ], ';');
+            foreach ($articles as $article) {
+                $timeOfFix = $article->time_of_fix ? Carbon::parse($article->time_of_fix)->format('Y-m-d\TH:i:s.000\Z') : null;
+                fputcsv($file, [
+                    $article->flag,
+                    $article->vessel_name,
+                    $article->registered_owner,
+                    $article->call_sign,
+                    $article->mmsi,
+                    $article->imo,
+                    $article->ship_type,
+                    $article->destination,
+                    $article->eta,
+                    $article->navigation_status,
+                    $article->latitude,
+                    $article->longitude,
+                    $article->age,
+                    $timeOfFix,
+                ], ';');
+            }
+
+            fflush($file);
+            fclose($file);
+        }, 200, $headers);
+    }
+
+    public function exportFilteredCSV(Request $request)
+    {
+        $filter = $request->input('filter');
+    
+        $query = Article::query();
+    
+        if ($filter === 'destinationmada') {
+            $filtreDestinations = [
+                "Mg die", "Antsiranana [mdg]", "Mg Die", "Mgdie", "Diego Suarez",
+                "Mg Dgo", "Mg Mjn", "Mgmjn", "Mg Mga", "Majunga", "Mahajanga",
+                "Mg Tle", "Mgtle", "Mg Ehl", "mgehl", "Mgt0a", "Mg Tmm", "Mgtoa",
+                "Mg Toa", "Tamatave", "Toamasina", "Tamatave-madagascar",
+                "Toamasina(tamatave)", "Mg.toamasina", "Mgtmm", "mgtmm", "Mgtmve",
+                "Tma", "Tma@@@@@@@@@@@@@@@@a", "Toamasina. Madagasca", "Nosy Be",
+                "Mgehl", "Mg Eho", "Mg Nbe", "Mg Voh", "Vohemar", "Mg Vhm", "Tular",
+                "Eez Madagascar", "Ile Sainte Marie", "Sainte Marie", "Iharana",
+                "Andoany", "Ehoala", "Tulear-Madagascar", "Tulear-mg", "Nosy Be",
+                "Ankify", "Mg Nos", "Mgnos", "Mg B2g", "Mg Ftu", "Hell-ville",
+                "Nosy Be Madagascar", "Nosy Iranja", "Mg Nbe", "Fort Dauphin",
+                "Antsiranana", "Mg Nosy Mangabe", "Nosy Tanikely", "Tulear__madagascar",
+                "Nosy Sakatia", "Mghlv", "Morondava", "Toamgt"
+            ];
+    
+            $query->where(function ($q) use ($filtreDestinations) {
+                foreach ($filtreDestinations as $destination) {
+                    $q->orWhere('destination', $destination);
+                }
+                $q->orWhere('destination', 'LIKE', 'Mg%');
+            });
+
+                // Exclure les lignes avec shiptype = "Tug"
+            $query->where('ship_type', '!=', 'Tug');
+
+            // Exclure les lignes avec vessel_name = "TSARAVATSY", "AVISOA", "TS INDIAN OCEAN"
+            $query->whereNotIn('vessel_name', ['TSARAVATSY', 'AVISOA', 'TS INDIAN OCEAN']);
+
+            // Exclure les lignes avec flag = "Madagascar"
+            $query->where('flag', '!=', 'Madagascar');
+        } elseif ($filter === 'national') {
+            $query->whereIn('flag', ['Madagascar', 'Luxembourg']);
+        } elseif ($filter === 'international') {
+            $query->whereNotIn('flag', ['Madagascar', 'Luxembourg']);
         }
-
-        fflush($file);
-        fclose($file);
-    }, 200, $headers);
-}
-
-public function exportFilteredCSV(Request $request)
-{
-    // Définition des destinations à filtrer
-    $filtreDestinations = [
-        "Mg die", "Antsiranana [mdg]", "Mg Die", "Mgdie", "Diego Suarez",
-        "Mg Dgo", "Mg Mjn", "Mgmjn", "Mg Mga", "Majunga", "Mahajanga",
-        "Mg Tle", "Mgtle", "Mg Ehl", "mgehl", "Mgt0a", "Mg Tmm", "Mgtoa",
-        "Mg Toa", "Tamatave", "Toamasina", "Tamatave-madagascar",
-        "Toamasina(tamatave)", "Mg.toamasina", "Mgtmm", "mgtmm", "Mgtmve",
-        "Tma", "Tma@@@@@@@@@@@@@@@@a", "Toamasina. Madagasca", "Nosy Be",
-        "Mgehl", "Mg Eho", "Mg Nbe", "Mg Voh", "Vohemar", "Mg Vhm", "Tular",
-        "Eez Madagascar", "Ile Sainte Marie", "Sainte Marie", "Iharana",
-        "Andoany", "Ehoala", "Tulear-Madagascar", "Tulear-mg", "Nosy Be",
-        "Ankify", "Mg Nos", "Mgnos", "Mg B2g", "Mg Ftu", "Hell-ville",
-        "Nosy Be Madagascar", "Nosy Iranja", "Mg Nbe", "Fort Dauphin",
-        "Antsiranana", "Mg Nosy Mangabe", "Nosy Tanikely", "Tulear__madagascar",
-        "Nosy Sakatia", "Mghlv", "Morondava", "Toamgt"
-    ];
-
-    $articles = Article::where(function ($query) use ($filtreDestinations) {
-        foreach ($filtreDestinations as $destination) {
-            $query->orWhere('destination', $destination);
-        }
-        $query->orWhere('destination', 'LIKE', 'Mg%');
-    })->get();
-
-    $fileName = 'articles_filtered.csv';
-    $headers = [
-        "Content-Type" => "text/csv; charset=UTF-8",
-        "Content-Disposition" => "attachment; filename=$fileName",
-        "Pragma" => "no-cache",
-        "Expires" => "0",
-    ];
-
-    $callback = function () use ($articles) {
-        $file = fopen('php://output', 'w');
-        fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
-
-        fputcsv($file, ['flag', 'vessel_name', 'registered_owner', 'call_sign', 'mmsi', 'imo', 'ship_type', 'destination', 'eta', 'navigation_status', 'latitude', 'longitude', 'age', 'time_of_fix'], ';');
-
-        foreach ($articles as $article) {
-            $timeOfFix = $article->time_of_fix ? Carbon::parse($article->time_of_fix)->format('Y-m-d\TH:i:s.000\Z') : null;
-            fputcsv($file, [
-                $article->flag,
-                $article->vessel_name,
-                $article->registered_owner,
-                $article->call_sign,
-                $article->mmsi,
-                $article->imo,
-                $article->ship_type,
-                $article->destination,
-                $article->eta,
-                $article->navigation_status,
-                $article->latitude,
-                $article->longitude,
-                $article->age,
-                $timeOfFix,
-            ], ';');
-        }
-
-        fclose($file);
-    };
-
-    return response()->stream($callback, 200, $headers);
-}
-
-
+    
+        $articles = $query->get();
+    
+        $fileName = 'articles_filtrés_'.$filter.'_' . Carbon::now()->format('Y-m-d_His') . '.csv';
+        $headers = [
+            
+            "Content-Type" => "text/csv; charset=UTF-8",
+            "Content-Disposition" => "attachment; filename=$fileName",
+            "Pragma" => "no-cache",
+            "Expires" => "0",
+        ];
+    
+        $callback = function () use ($articles) {
+            $file = fopen('php://output', 'w');
+            fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
+    
+            // En-tête du fichier CSV
+            fputcsv($file, ['flag', 'vessel_name', 'registered_owner', 'call_sign', 'mmsi', 'imo', 'ship_type', 'destination', 'eta', 'navigation_status', 'latitude', 'longitude', 'age', 'time_of_fix'], ';');
+    
+            // Contenu du fichier CSV
+            foreach ($articles as $article) {
+                $timeOfFix = $article->time_of_fix ? Carbon::parse($article->time_of_fix)->format('Y-m-d\TH:i:s.000\Z') : null;
+                fputcsv($file, [
+                    $article->flag,
+                    $article->vessel_name,
+                    $article->registered_owner,
+                    $article->call_sign,
+                    $article->mmsi,
+                    $article->imo,
+                    $article->ship_type,
+                    $article->destination,
+                    $article->eta,
+                    $article->navigation_status,
+                    $article->latitude,
+                    $article->longitude,
+                    $article->age,
+                    $timeOfFix,
+                ], ';');
+            }
+    
+            fclose($file);
+        };
+    
+        return response()->stream($callback, 200, $headers);
+    }
+    
 
 }
