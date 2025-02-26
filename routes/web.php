@@ -1,6 +1,8 @@
 <?php
 
 
+use App\Http\Controllers\PecheController;
+use App\Http\Controllers\RapportController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\ListeMadaController;
@@ -67,7 +69,14 @@ Route::prefix('bilan_sars')->group(function () {
     Route::resource('regions', RegionController::class);
 });
 
+//Peche
+Route::resource('peche', PecheController::class);
+Route::post('/import-peche', [PecheController::class, 'importCSV'])->name('peche.import');
+
 
 Route::resource('bilan_sars', BilanSarController::class)->except(['edit', 'update', 'show']);
 Route::get('general', [test::class, 'index']);
-Route::post('/bilan_sars/import', [BilanSarController::class, 'import'])->name('bilan_sars.import');
+Route::post('/bilan_sars/import', action: [BilanSarController::class, 'import'])->name('bilan_sars.import');
+
+// RAPPORTS
+Route::get('/rapports', [RapportController::class, 'index'])->name('rapport.index');

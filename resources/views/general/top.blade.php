@@ -33,6 +33,9 @@
       <li class="nav-item d-none d-sm-inline-block">
         <a href="{{ route('list.mada') }}" class="nav-link {{ request()->is('listeMada') ? 'activo' : '' }}">Liste des données MADA</a>
       </li>
+      <li class="nav-item d-none d-sm-inline-block">
+        <a href="{{ route('peche.index') }}" class="nav-link {{ request()->is('peche') ? 'activo' : '' }}">Pêche</a>
+      </li>
     </ul>
 
 
@@ -134,14 +137,14 @@
                 </a>
             </li>
             <li class="nav-item">
-            <a href="{{ route('bilan_sars.index') }}" class="nav-link {{ request()->is('bilan*') ? 'activee' : '' }}" class="nav-link">
-                <i class="nav-icon fas fa-clipboard-list"></i>
-                <p>
-                BILAN SAR
-                <i class="right fas fa-angle-left"></i>
-                </p>
-            </a>
-            <ul class="nav nav-treeview">
+              <a href="{{ route('bilan_sars.index') }}" class="nav-link {{ request()->is('bilan*') ? 'activee' : '' }}" class="nav-link">
+                  <i class="nav-icon fas fa-clipboard-list"></i>
+                  <p>
+                  BILAN SAR
+                  <i class="right fas fa-angle-left"></i>
+                  </p>
+              </a>
+              <ul class="nav nav-treeview">
                 <li class="nav-item">
                   <a href="{{ route('bilan_sars.index') }}" class="nav-link {{ request()->is('bilan_sars') ? 'activee' : '' }}">
                       <i class="far fa-circle nav-icon"></i>
@@ -167,6 +170,16 @@
                   </a>
                 </li>
             </ul>
+            </li>
+            <li class="nav-item">
+                <a href="{{ url('/rapports') }}" class="nav-link {{ request()->is('rapport*') ? 'activee' : '' }}">
+                  <i class="fas fa-chart-bar nav-icon"></i> 
+
+
+                  <p>
+                      RAPPORT 
+                  </p>
+                </a>
             </li>
         </ul>
       </nav>

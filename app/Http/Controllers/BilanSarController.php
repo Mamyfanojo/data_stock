@@ -14,7 +14,7 @@ class BilanSarController extends Controller
 {
     public function index()
     {
-        $bilans = BilanSar::with(['typeEvenement', 'causeEvenement'])->paginate(10);
+        $bilans = BilanSar::with(['typeEvenement', 'causeEvenement'])->paginate(20);
         return view('surveillance.bilan_sars.index', compact('bilans'));
     }
 

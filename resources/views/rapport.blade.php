@@ -1,62 +1,82 @@
-
 @extends('general.top')
 
-@section('title', 'DASHBOARD')
+@section('title', 'RAPPORTS')
 
 @section('content')
-
 <div class="container-fluid px-4">
-    <div class="row mt-4">
-        <div class="col-lg-3 col-6">
-            <div class="small-box" style="background-color: #4CAF50; color: white;">
-                <div class="inner">
-                    <h3>{{ $avurnavCount }}</h3>
-                    <p>Nombre d'Avurnav</p>
-                </div>
-                <div class="icon">
-                    <i class="ion ion-bag"></i>
-                </div>
-                <a href="{{ route('avurnav.index') }}" class="small-box-footer">Plus d'info <i class="fas fa-arrow-circle-right"></i></a>
-            </div>
-        </div>
 
-        <div class="col-lg-3 col-6">
-            <div class="small-box" style="background-color: #FF9800; color: white;">
-                <div class="inner">
-                    <h3>{{ $pollutionCount }}</h3>
-                    <p>Nombre de Pollutions</p>
-                </div>
-                <div class="icon">
-                    <i class="ion ion-stats-bars"></i>
-                </div>
-                <a href="{{ route('pollutions.index') }}" class="small-box-footer">Plus d'info <i class="fas fa-arrow-circle-right"></i></a>
-            </div>
+    <!-- Affichage du texte récapitulatif du filtre -->
+    @if(isset($filterResult))
+        <div class="alert alert-info mt-3">
+            <strong>{{ $filterResult }}</strong>
         </div>
+    @endif
 
-        <div class="col-lg-3 col-6">
-            <div class="small-box" style="background-color: #F44336; color: white;">
-                <div class="inner">
-                    <h3>{{ $sitrepCount }}</h3>
-                    <p>Nombre de Sitrep</p>
-                </div>
-                <div class="icon">
-                    <i class="ion ion-person-add"></i>
-                </div>
-                <a href="{{ route('sitreps.index') }}" class="small-box-footer">Plus d'info <i class="fas fa-arrow-circle-right"></i></a>
-            </div>
+    <!-- Filtres -->
+    <div class="card my-4">
+        <div class="card-header">
+            <h5>Filtres</h5>
         </div>
+        <div class="card-body">
+            <form method="GET" action="{{ route('rapport.index') }}">
+                <div class="row">
+                    <!-- Filtrer par date précise -->
+                    <div class="col-md-4">
+                        <label for="filter_date">Filtrer par date précise</label>
+                        <input type="date" 
+                               name="filter_date" 
+                               id="filter_date" 
+                               class="form-control"
+                               value="{{ request('filter_date') }}">
+                    </div>
 
-        <div class="col-lg-3 col-6">
-            <div class="small-box" style="background-color: #2196F3; color: white;">
-                <div class="inner">
-                    <h3>{{ $bilanSarCount }}</h3>
-                    <p>Nombre de BilanSar</p>
+                    <!-- Filtrer par trimestre d'une année choisie -->
+                    <div class="col-md-4">
+                        <label>Filtrer par trimestre</label>
+                        <div class="input-group">
+                            <select name="filter_year_quarter" class="form-control">
+                                <option value="">Année</option>
+                                @for ($y = date('Y'); $y >= 2000; $y--)
+                                    <option value="{{ $y }}" {{ request('filter_year_quarter') == $y ? 'selected' : '' }}>{{ $y }}</option>
+                                @endfor
+                            </select>
+                            <select name="filter_quarter" class="form-control">
+                                <option value="">Trimestre</option>
+                                <option value="1" {{ request('filter_quarter') == 1 ? 'selected' : '' }}>1er trimestre</option>
+                                <option value="2" {{ request('filter_quarter') == 2 ? 'selected' : '' }}>2ème trimestre</option>
+                                <option value="3" {{ request('filter_quarter') == 3 ? 'selected' : '' }}>3ème trimestre</option>
+                                <option value="4" {{ request('filter_quarter') == 4 ? 'selected' : '' }}>4ème trimestre</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Filtrer par mois d'une année choisie -->
+                    <div class="col-md-4">
+                        <label>Filtrer par mois</label>
+                        <div class="input-group">
+                            <select name="filter_year_month" class="form-control">
+                                <option value="">Année</option>
+                                @for ($y = date('Y'); $y >= 2000; $y--)
+                                    <option value="{{ $y }}" {{ request('filter_year_month') == $y ? 'selected' : '' }}>{{ $y }}</option>
+                                @endfor
+                            </select>
+                            <select name="filter_month" class="form-control">
+                                <option value="">Mois</option>
+                                @for ($m = 1; $m <= 12; $m++)
+                                    <option value="{{ $m }}" {{ request('filter_month') == $m ? 'selected' : '' }}>{{ $m }}</option>
+                                @endfor
+                            </select>
+                        </div>
+                    </div>
                 </div>
-                <div class="icon">
-                    <i class="ion ion-pie-graph"></i>
+
+                <div class="row mt-3">
+                    <div class="col-md-12">
+                        <button type="submit" class="btn btn-primary">Appliquer les filtres</button>
+                        <a href="{{ route('rapport.index') }}" class="btn btn-secondary">Réinitialiser</a>
+                    </div>
                 </div>
-                <a href="{{ route('bilan_sars.index') }}" class="small-box-footer">Plus d'info <i class="fas fa-arrow-circle-right"></i></a>
-            </div>
+            </form>
         </div>
     </div>
 
@@ -85,8 +105,6 @@
                 </div>
             </div>
         </div>
-
-        
     </div>
 
     <div class="row mt-4">
@@ -121,7 +139,8 @@
                 <div class="card-header bg-info text-white">
                     <h5>Nombre d'entrées par zone</h5>
                 </div>
-                <div class="card-body">
+                <!-- Appliquer la classe chart-container -->
+                <div class="card-body chart-container">
                     <canvas id="chartZones"></canvas>
                     <button class="btn btn-info mt-2" onclick="downloadChart('chartZones', 'zones_count.png')">Télécharger</button>
                 </div>
@@ -132,18 +151,17 @@
                 <div class="card-header bg-secondary text-white">
                     <h5>Répartition des navires par Flag</h5>
                 </div>
-                <div class="card-body">
-                    <canvas id="chartFlags" width="400" height="300"></canvas>
+                <!-- Appliquer la classe chart-container -->
+                <div class="card-body chart-container">
+                    <canvas id="chartFlags"></canvas>
                     <button class="btn btn-secondary mt-2" onclick="downloadChart('chartFlags', 'flags_distribution.png')">Télécharger</button>
                 </div>
             </div>
         </div>
     </div>
     
+    
 </div>
-
-
-{{-- <script> --}}
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
@@ -181,15 +199,13 @@
 
     const bilanLabels = ["POB", "Survivants", "Blessés", "Morts", "Disparus", "Evasan"];
     const bilanCounts = {!! json_encode(isset($bilanStats) ? [
-    $bilanStats->pob_total ?? 0,
-    $bilanStats->survivants_total ?? 0,
-    $bilanStats->blesses_total ?? 0,
-    $bilanStats->morts_total ?? 0,
-    $bilanStats->disparus_total ?? 0,
-    $bilanStats->evasan_total ?? 0
-] : [0, 0, 0, 0, 0, 0]) !!};
-
-
+        $bilanStats->pob_total ?? 0,
+        $bilanStats->survivants_total ?? 0,
+        $bilanStats->blesses_total ?? 0,
+        $bilanStats->morts_total ?? 0,
+        $bilanStats->disparus_total ?? 0,
+        $bilanStats->evasan_total ?? 0
+    ] : [0, 0, 0, 0, 0, 0]) !!};
 
     new Chart(document.getElementById('chartBilanStats').getContext('2d'), {
         type: 'bar',
@@ -201,15 +217,11 @@
                 data: bilanCounts 
             }] 
         },
-        options: { 
-            responsive: true, 
-            scales: { y: { beginAtZero: true } } 
-        }
+        options: { responsive: true, scales: { y: { beginAtZero: true } } }
     });
 
     const zonesLabels = @json(array_keys($zoneCounts));
     const zonesCounts = @json(array_values($zoneCounts));
-
     new Chart(document.getElementById('chartZones').getContext('2d'), {
         type: 'bar',
         data: {
@@ -222,6 +234,7 @@
         },
         options: {
             responsive: true,
+            maintainAspectRatio: true,  // Désactive le ratio fixe
             scales: { y: { beginAtZero: true } }
         }
     });
@@ -229,21 +242,27 @@
     const flagLabels = @json($flagData->pluck('name'));
     const flagCounts = @json($flagData->pluck('count'));
 
-    new Chart(document.getElementById('chartFlags').getContext('2d'), {
-        type: 'pie',
-        data: {
-            labels: flagLabels,
-            datasets: [{
-                label: 'Nombre de navires',
-                backgroundColor: ['#FF5733', '#33FF57', '#3357FF', '#F3FF33', '#FF33A8'],
-                data: flagCounts
-            }]
-        },
-        options: {
-            responsive: true
+// chartFlags
+new Chart(document.getElementById('chartFlags').getContext('2d'), {
+    type: 'doughnut',
+    data: {
+        labels: flagLabels,
+        datasets: [{
+            label: 'Nombre de navires',
+            backgroundColor: ['#FF5733', '#33FF57', '#3357FF', '#F3FF33', '#FF33A8'],
+            data: flagCounts
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,  // Désactive le ratio fixe
+        plugins: {
+            legend: {
+                position: 'top'
+            }
         }
-    });
-    
-</script>
+    }
+});
 
+</script>
 @endsection
