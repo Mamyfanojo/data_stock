@@ -74,6 +74,11 @@
                     <div class="col-md-12">
                         <button type="submit" class="btn btn-primary">Appliquer les filtres</button>
                         <a href="{{ route('rapport.index') }}" class="btn btn-secondary">Réinitialiser</a>
+
+                        <!-- Bouton Exporter PDF -->
+                        <a href="{{ route('rapport.exportPdf', request()->all()) }}" class="btn btn-danger">
+                            Exporter en PDF
+                        </a>
                     </div>
                 </div>
             </form>
@@ -139,7 +144,6 @@
                 <div class="card-header bg-info text-white">
                     <h5>Nombre d'entrées par zone</h5>
                 </div>
-                <!-- Appliquer la classe chart-container -->
                 <div class="card-body chart-container">
                     <canvas id="chartZones"></canvas>
                     <button class="btn btn-info mt-2" onclick="downloadChart('chartZones', 'zones_count.png')">Télécharger</button>
@@ -151,7 +155,6 @@
                 <div class="card-header bg-secondary text-white">
                     <h5>Répartition des navires par Flag</h5>
                 </div>
-                <!-- Appliquer la classe chart-container -->
                 <div class="card-body chart-container">
                     <canvas id="chartFlags"></canvas>
                     <button class="btn btn-secondary mt-2" onclick="downloadChart('chartFlags', 'flags_distribution.png')">Télécharger</button>
@@ -159,7 +162,6 @@
             </div>
         </div>
     </div>
-    
     
 </div>
 
@@ -173,30 +175,64 @@
         link.click();
     }
 
+    // Chart Types
     const typesLabels = @json($typesData->pluck('name'));
     const typesCounts = @json($typesData->pluck('count'));
     new Chart(document.getElementById('chartTypes').getContext('2d'), {
         type: 'bar',
-        data: { labels: typesLabels, datasets: [{ label: 'Nombre d\'événements', backgroundColor: '#4CAF50', data: typesCounts }] },
-        options: { responsive: true, scales: { y: { beginAtZero: true } } }
+        data: { 
+            labels: typesLabels, 
+            datasets: [{
+                label: 'Nombre d\'événements', 
+                backgroundColor: '#4CAF50', 
+                data: typesCounts
+            }] 
+        },
+        options: { 
+            responsive: true, 
+            scales: { y: { beginAtZero: true } } 
+        }
     });
 
+    // Chart Causes
     const causesLabels = @json($causesData->pluck('name'));
     const causesCounts = @json($causesData->pluck('count'));
     new Chart(document.getElementById('chartCauses').getContext('2d'), {
         type: 'bar',
-        data: { labels: causesLabels, datasets: [{ label: 'Nombre d\'événements', backgroundColor: '#FF9800', data: causesCounts }] },
-        options: { responsive: true, scales: { y: { beginAtZero: true } } }
+        data: { 
+            labels: causesLabels, 
+            datasets: [{
+                label: 'Nombre d\'événements', 
+                backgroundColor: '#FF9800', 
+                data: causesCounts
+            }]
+        },
+        options: { 
+            responsive: true, 
+            scales: { y: { beginAtZero: true } } 
+        }
     });
 
+    // Chart Regions
     const regionsLabels = @json($regionsData->pluck('name'));
     const regionsCounts = @json($regionsData->pluck('count'));
     new Chart(document.getElementById('chartRegions').getContext('2d'), {
         type: 'bar',
-        data: { labels: regionsLabels, datasets: [{ label: 'Nombre de bilans SAR', backgroundColor: '#FFC107', data: regionsCounts }] },
-        options: { responsive: true, scales: { y: { beginAtZero: true } } }
+        data: { 
+            labels: regionsLabels, 
+            datasets: [{
+                label: 'Nombre de bilans SAR', 
+                backgroundColor: '#FFC107', 
+                data: regionsCounts
+            }] 
+        },
+        options: { 
+            responsive: true, 
+            scales: { y: { beginAtZero: true } } 
+        }
     });
 
+    // Chart BilanStats
     const bilanLabels = ["POB", "Survivants", "Blessés", "Morts", "Disparus", "Evasan"];
     const bilanCounts = {!! json_encode(isset($bilanStats) ? [
         $bilanStats->pob_total ?? 0,
@@ -211,15 +247,19 @@
         type: 'bar',
         data: { 
             labels: bilanLabels, 
-            datasets: [{ 
+            datasets: [{
                 label: 'Total des incidents', 
                 backgroundColor: ['#4CAF50', '#2196F3', '#FF9800', '#F44336', '#9C27B0', '#795548'], 
-                data: bilanCounts 
+                data: bilanCounts
             }] 
         },
-        options: { responsive: true, scales: { y: { beginAtZero: true } } }
+        options: { 
+            responsive: true, 
+            scales: { y: { beginAtZero: true } } 
+        }
     });
 
+    // Chart Zones
     const zonesLabels = @json(array_keys($zoneCounts));
     const zonesCounts = @json(array_values($zoneCounts));
     new Chart(document.getElementById('chartZones').getContext('2d'), {
@@ -234,35 +274,31 @@
         },
         options: {
             responsive: true,
-            maintainAspectRatio: true,  // Désactive le ratio fixe
+            maintainAspectRatio: true,
             scales: { y: { beginAtZero: true } }
         }
     });
 
+    // Chart Flags
     const flagLabels = @json($flagData->pluck('name'));
     const flagCounts = @json($flagData->pluck('count'));
-
-// chartFlags
-new Chart(document.getElementById('chartFlags').getContext('2d'), {
-    type: 'doughnut',
-    data: {
-        labels: flagLabels,
-        datasets: [{
-            label: 'Nombre de navires',
-            backgroundColor: ['#FF5733', '#33FF57', '#3357FF', '#F3FF33', '#FF33A8'],
-            data: flagCounts
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: true,  // Désactive le ratio fixe
-        plugins: {
-            legend: {
-                position: 'top'
+    new Chart(document.getElementById('chartFlags').getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: flagLabels,
+            datasets: [{
+                label: 'Nombre de navires',
+                backgroundColor: ['#FF5733', '#33FF57', '#3357FF', '#F3FF33', '#FF33A8'],
+                data: flagCounts
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: { position: 'top' }
             }
         }
-    }
-});
-
+    });
 </script>
 @endsection

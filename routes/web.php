@@ -80,3 +80,14 @@ Route::post('/bilan_sars/import', action: [BilanSarController::class, 'import'])
 
 // RAPPORTS
 Route::get('/rapports', [RapportController::class, 'index'])->name('rapport.index');
+
+/*
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/rapport', [RapportController::class, 'index'])->name('rapport.index');
+
+// Route pour exporter en PDF, on récupère les mêmes filtres
+Route::get('/rapport/pdf', [RapportController::class, 'exportPdf'])->name('rapport.exportPdf');
